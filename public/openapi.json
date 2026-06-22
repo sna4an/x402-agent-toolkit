@@ -15,6 +15,15 @@
         "summary": "API info and endpoint listing",
         "description": "Get API metadata, available endpoints, and supported networks.",
         "tags": ["Info"],
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["full", "compact"], "default": "full" },
+            "description": "Response format: full or compact"
+          }
+        ],
         "x-payment-info": {
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.001000" },
           "protocols": [{ "x402": {} }]
