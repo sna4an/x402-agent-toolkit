@@ -1,52 +1,64 @@
 import { paymentProxy } from "@x402/next";
 import { x402ResourceServer, HTTPFacilitatorClient } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
+import { ExactSvmScheme } from "@x402/svm/exact/server";
 
 const WALLET_EVM = process.env.EVM_ADDRESS;
+const WALLET_SVM = process.env.SVM_ADDRESS;
 const FACILITATOR_URL = process.env.FACILITATOR_URL;
 
-if (!WALLET_EVM || !FACILITATOR_URL) {
-  throw new Error("Missing required env vars: EVM_ADDRESS, FACILITATOR_URL");
+if (!WALLET_EVM || !WALLET_SVM || !FACILITATOR_URL) {
+  throw new Error("Missing required env vars: EVM_ADDRESS, SVM_ADDRESS, FACILITATOR_URL");
 }
 
 const EVM_NETWORK = "eip155:8453" as const;
+const SVM_NETWORK = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp" as const;
 
 const facilitatorClient = new HTTPFacilitatorClient({ url: FACILITATOR_URL });
 const server = new x402ResourceServer(facilitatorClient);
 server.register(EVM_NETWORK, new ExactEvmScheme());
-
-const evmPayTo = { scheme: "exact" as const, price: "$0.02", network: EVM_NETWORK, payTo: WALLET_EVM };
+server.register(SVM_NETWORK, new ExactSvmScheme());
 
 export const proxy = paymentProxy(
   {
     "/api/url-to-text": {
       accepts: [
-        { ...evmPayTo, price: "$0.02" }],
-      description: "Scrape a URL and return clean text content. Supports articles, docs, and web pages.",
+        { scheme: "exact" as const, price: "$0.02", network: EVM_NETWORK, payTo: WALLET_EVM },
+        { scheme: "exact" as const, price: "$0.02", network: SVM_NETWORK, payTo: WALLET_SVM },
+      ],
+      description: "Scrape a URL and return clean text content.",
       mimeType: "application/json",
     },
     "/api/json-transform": {
       accepts: [
-        { ...evmPayTo, price: "$0.01" }],
-      description: "Transform JSON data: filter keys, pick fields, flatten nested objects, or apply jq-style queries.",
+        { scheme: "exact" as const, price: "$0.01", network: EVM_NETWORK, payTo: WALLET_EVM },
+        { scheme: "exact" as const, price: "$0.01", network: SVM_NETWORK, payTo: WALLET_SVM },
+      ],
+      description: "Transform JSON data: filter, pick, flatten, keys, count.",
       mimeType: "application/json",
     },
     "/api/csv-parse": {
       accepts: [
-        { ...evmPayTo, price: "$0.01" }],
-      description: "Parse CSV text into structured JSON with auto-detected delimiters and headers.",
+        { scheme: "exact" as const, price: "$0.01", network: EVM_NETWORK, payTo: WALLET_EVM },
+        { scheme: "exact" as const, price: "$0.01", network: SVM_NETWORK, payTo: WALLET_SVM },
+      ],
+      description: "Parse CSV text into structured JSON.",
       mimeType: "application/json",
     },
     "/api/text-stats": {
       accepts: [
-        { ...evmPayTo, price: "$0.005" }],
-      description: "Get text statistics: word count, character count, sentence count, reading time, and more.",
+        { scheme: "exact" as const, price: "$0.005", network: EVM_NETWORK, payTo: WALLET_EVM },
+        { scheme: "exact" as const, price: "$0.005", network: SVM_NETWORK, payTo: WALLET_SVM },
+      ],
+      description: "Get text statistics: word count, reading time, top words.",
       mimeType: "application/json",
     },
     "/api/hash-generate": {
       accepts: [
-        { ...evmPayTo, price: "$0.005" }],
-      description: "Generate cryptographic hashes (SHA256, MD5, SHA512) from any input string.",
+        { scheme: "exact" as const, price: "$0.005", network: EVM_NETWORK, payTo: WALLET_EVM },
+        { scheme: "exact" as const, price: "$0.005", network: SVM_NETWORK, payTo: WALLET_SVM },
+      ],
+      description: "Generate SHA256/MD5/SHA512 hash from input string.",
       mimeType: "application/json",
     },
   },
