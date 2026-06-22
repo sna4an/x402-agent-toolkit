@@ -24,6 +24,14 @@ const svmPayTo = { scheme: "exact" as const, price: "$0.02", network: SVM_NETWOR
 
 export const proxy = paymentProxy(
   {
+    "/api/info": {
+      accepts: [
+        { scheme: "exact", price: "$0.001", network: EVM_NETWORK, payTo: WALLET_EVM },
+        { scheme: "exact", price: "$0.001", network: SVM_NETWORK, payTo: WALLET_SVM },
+      ],
+      description: "API info and endpoint listing.",
+      mimeType: "application/json",
+    },
     "/api/url-to-text": {
       accepts: [
         { ...evmPayTo, price: "$0.02" },

@@ -5,15 +5,47 @@
     "version": "1.0.0",
     "description": "Paid utility endpoints for AI agents. Pay with USDC on Base or Solana. Pure computation, no LLM dependency.",
     "contact": { "email": "sna4an@users.noreply.github.com" },
-    "x-guidance": "This API provides data processing utilities for AI agents. All endpoints require USDC payment via the x402 protocol. Use POST with JSON body for all endpoints."
+    "x-guidance": "This API provides data processing utilities for AI agents. All endpoints require USDC payment via the x402 protocol. Use POST with JSON body for all endpoints except /api/info which uses GET."
   },
   "servers": [{ "url": "https://x402-agent-toolkit.vercel.app" }],
   "paths": {
+    "/api/info": {
+      "get": {
+        "operationId": "getInfo",
+        "summary": "API info and endpoint listing",
+        "description": "Get API metadata, available endpoints, and supported networks.",
+        "tags": ["Info"],
+        "x-payment-info": {
+          "price": { "mode": "fixed", "currency": "USD", "amount": "0.001000" },
+          "protocols": [{ "x402": {} }]
+        },
+        "responses": {
+          "200": {
+            "description": "API info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "version": { "type": "string" },
+                    "endpoints": { "type": "array", "items": { "type": "string" } },
+                    "networks": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          },
+          "402": { "description": "Payment Required" }
+        }
+      }
+    },
     "/api/url-to-text": {
       "post": {
         "operationId": "urlToText",
         "summary": "Scrape URL and extract text",
-        "description": "Fetches a URL and returns clean text content with HTML stripped. Supports articles, docs, and web pages.",
+        "description": "Fetches a URL and returns clean text content with HTML stripped.",
+        "tags": ["Data Processing"],
         "x-payment-info": {
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.020000" },
           "protocols": [{ "x402": {} }]
@@ -42,8 +74,7 @@
                   "properties": {
                     "url": { "type": "string" },
                     "text": { "type": "string" },
-                    "chars": { "type": "integer" },
-                    "fetchedAt": { "type": "string" }
+                    "chars": { "type": "integer" }
                   }
                 }
               }
@@ -57,7 +88,8 @@
       "post": {
         "operationId": "jsonTransform",
         "summary": "Transform JSON data",
-        "description": "Apply transformations to JSON: filter by key/value, pick specific keys, flatten nested objects, list keys, or count items.",
+        "description": "Apply transformations to JSON: filter, pick, flatten, keys, count.",
+        "tags": ["Data Processing"],
         "x-payment-info": {
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.010000" },
           "protocols": [{ "x402": {} }]
@@ -69,9 +101,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "data": { "description": "Input JSON data (object or array)" },
-                  "operation": { "type": "string", "enum": ["filter", "pick", "flatten", "keys", "count"], "description": "Transform operation" },
-                  "params": { "type": "object", "description": "Operation parameters (e.g. {key, value} for filter, {keys:[]} for pick)" }
+                  "data": { "description": "Input JSON data" },
+                  "operation": { "type": "string", "enum": ["filter", "pick", "flatten", "keys", "count"] },
+                  "params": { "type": "object" }
                 },
                 "required": ["data", "operation"]
               }
@@ -81,17 +113,7 @@
         "responses": {
           "200": {
             "description": "Transformed result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "operation": { "type": "string" },
-                    "result": { "description": "Transformed data" }
-                  }
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "type": "object" } } }
           },
           "402": { "description": "Payment Required" }
         }
@@ -101,7 +123,8 @@
       "post": {
         "operationId": "csvParse",
         "summary": "Parse CSV to JSON",
-        "description": "Parse CSV text into structured JSON with auto-detected delimiters and headers. Supports quoted fields.",
+        "description": "Parse CSV text into structured JSON with auto-detected delimiters.",
+        "tags": ["Data Processing"],
         "x-payment-info": {
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.010000" },
           "protocols": [{ "x402": {} }]
@@ -113,9 +136,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "csv": { "type": "string", "minLength": 1, "description": "CSV text to parse" },
-                  "delimiter": { "type": "string", "description": "Optional delimiter (auto-detected if omitted)" },
-                  "hasHeader": { "type": "boolean", "default": true, "description": "Whether first row is headers" }
+                  "csv": { "type": "string", "minLength": 1 }
                 },
                 "required": ["csv"]
               }
@@ -125,19 +146,7 @@
         "responses": {
           "200": {
             "description": "Parsed CSV data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "delimiter": { "type": "string" },
-                    "headers": { "type": "array", "items": { "type": "string" } },
-                    "rows": { "type": "integer" },
-                    "data": { "type": "array", "items": { "type": "object" } }
-                  }
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "type": "object" } } }
           },
           "402": { "description": "Payment Required" }
         }
@@ -147,7 +156,8 @@
       "post": {
         "operationId": "textStats",
         "summary": "Get text statistics",
-        "description": "Analyze text and return statistics: word count, character count, sentence count, reading time, top words, and more.",
+        "description": "Analyze text: word count, reading time, top words, and more.",
+        "tags": ["Text Analysis"],
         "x-payment-info": {
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.005000" },
           "protocols": [{ "x402": {} }]
@@ -159,7 +169,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "text": { "type": "string", "minLength": 1, "description": "Text to analyze" }
+                  "text": { "type": "string", "minLength": 1 }
                 },
                 "required": ["text"]
               }
@@ -169,21 +179,7 @@
         "responses": {
           "200": {
             "description": "Text statistics",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "characters": { "type": "integer" },
-                    "words": { "type": "integer" },
-                    "sentences": { "type": "integer" },
-                    "paragraphs": { "type": "integer" },
-                    "readingTimeMinutes": { "type": "number" },
-                    "topWords": { "type": "array", "items": { "type": "object" } }
-                  }
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "type": "object" } } }
           },
           "402": { "description": "Payment Required" }
         }
@@ -193,7 +189,8 @@
       "post": {
         "operationId": "hashGenerate",
         "summary": "Generate cryptographic hash",
-        "description": "Generate SHA256, MD5, SHA512, SHA1, or SHA384 hash from any input string.",
+        "description": "Generate SHA256, MD5, SHA512 hash from input string.",
+        "tags": ["Cryptography"],
         "x-payment-info": {
           "price": { "mode": "fixed", "currency": "USD", "amount": "0.005000" },
           "protocols": [{ "x402": {} }]
@@ -205,8 +202,8 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "input": { "type": "string", "minLength": 1, "description": "String to hash" },
-                  "algorithm": { "type": "string", "enum": ["sha256", "md5", "sha512", "sha1", "sha384"], "default": "sha256", "description": "Hash algorithm" }
+                  "input": { "type": "string", "minLength": 1 },
+                  "algorithm": { "type": "string", "enum": ["sha256", "md5", "sha512"] }
                 },
                 "required": ["input"]
               }
@@ -216,18 +213,7 @@
         "responses": {
           "200": {
             "description": "Generated hash",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "algorithm": { "type": "string" },
-                    "hash": { "type": "string" },
-                    "inputLength": { "type": "integer" }
-                  }
-                }
-              }
-            }
+            "content": { "application/json": { "schema": { "type": "object" } } }
           },
           "402": { "description": "Payment Required" }
         }
